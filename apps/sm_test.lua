@@ -1,6 +1,6 @@
--- Adjust package.path to include the 'statemachine.lua' path
-package.path = package.path .. ";./lib/lua-state-machine/?.lua"
-package.path = package.path .. ";../lib/lua-state-machine/?.lua"
+-- Adjust package.path to include libraries
+package.path = package.path .. ";./lib/?.lua"
+package.path = package.path .. ";../lib/?.lua"
 
 local machine = require('statemachine')
 
