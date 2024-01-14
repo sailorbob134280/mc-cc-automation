@@ -1,0 +1,3 @@
+[submodule "api/LLS-Addons"]
+	path = api/LLS-Addons
+	url = https://github.com/LuaLS/LLS-Addons
