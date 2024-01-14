@@ -1,6 +1,3 @@
 {
-  "workspace.library": [
-    "api/LLS-Addons/addons/cc-tweaked",
-    "lib/lua-state-machine"
-  ]
+  "workspace.library": ["api/LLS-Addons/addons/cc-tweaked"]
 }
