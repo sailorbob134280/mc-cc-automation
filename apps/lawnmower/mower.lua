@@ -194,12 +194,12 @@ function Mower:face_direction(targetDirection)
     end
 end
 
-function Mower:calculate_direction_to(targetPosition)
-    if self.current_position.x < targetPosition.x then
+function Mower:calculate_direction_to(target_position)
+    if self.current_position.x < target_position.x then
         return Mower.direction.EAST
-    elseif self.current_position.x > targetPosition.x then
+    elseif self.current_position.x > target_position.x then
         return Mower.direction.WEST
-    elseif self.current_position.y < targetPosition.y then
+    elseif self.current_position.y < target_position.y then
         return Mower.direction.NORTH
     else
         return Mower.direction.SOUTH
@@ -209,7 +209,7 @@ end
 function Mower:handleObstacleInPath()
     self:turn(Mower.turn_direction.opposite(self.dodge_direction))
     if turtle.detect() then
-        self.logger.debug('Obstacle still here, continuing to dodge')
+        self.logger.debug('Obstacle stillcurrent_direction here, continuing to dodge')
         self:turn(self.dodge_direction)
     else
         self.logger.debug('No more obstacle, trying to move around it')
@@ -299,8 +299,8 @@ function Mower:start()
     return true
   end
 
-  local targetDirection = self:calculate_direction_to(self.start_position)
-  self:face_direction(targetDirection)
+  local target_direction = self:calculate_direction_to(self.start_position)
+  self:face_direction(target_direction)
   self:move_forward()
 
   return true
@@ -308,6 +308,11 @@ end
 
 function Mower:mow()
   self.logger.trace('Mowing action')
+
+  if self:is_done_mowing() then
+    self.logger.debug('Mowing complete, returning to base')
+    self.fsm:mowing_complete()
+  end
 
   if self.current_position.z > self.base_position.z + self.obstacle_height_threshold then
     self.logger.debug('Obstacle thresholed exceeded, trying to dodge')
@@ -321,17 +326,22 @@ function Mower:mow()
   end
 
   if not self:move_forward() then
-  else
-    self.logger.debug('Unable to move forward, trying to climb')
-    if self:move_up() then
-      self.logger.debug('Unable to move up, obstacle detected')
-      self.fsm:obstacle()
+    self.logger.debug('Unable to move forward, is it mowable?')
+    local success, data = turtle.inspect()
+    if not success then
+      self.logger.error('Unable to inspect block in front of us for some reason')
+      self.fsm:error()
+      return true
+    elseif not self.mowables[data.name] then
+      self.logger.debug('Block in front of us is not mowable, trying to move up')
+      if self:move_up() then
+        self.logger.debug('Unable to move up, obstacle detected')
+        self.fsm:obstacle()
+      end
+    else
+      self.logger.debug('Block in front of us is mowable, trying to mow')
+      turtle.dig()
     end
-  end
-
-  if self:is_done_mowing() then
-    self.logger.debug('Mowing complete, returning to base')
-    self.fsm:mowing_complete()
   end
 
   return true
@@ -463,7 +473,7 @@ function Mower:create_sm()
       end,
       onstarting = function(_, _, _ , _)
         logger.debug('Now in starting state')
-        self.action = function() self:start() end
+        self.action = function() return self:start() end
       end,
       onmowing = function(_, _, _ , _)
         logger.debug('Now in mowing state')
@@ -502,14 +512,15 @@ function Mower.create(base_opts, logger)
 
   -- Relative to the base station
   mower.logger.debug('Setting configuration parameters')
-  mower.current_position = vector.new(base_opts.position.x, base_opts.position.y, base_opts.position.z)
-  mower.current_direction = base_opts.direction
+  mower.base_position = vector.new(base_opts.position.x, base_opts.position.y, base_opts.position.z)
+  mower.base_direction = base_opts.direction
   mower.start_position = vector.new(base_opts.mowing_area.start.x, base_opts.mowing_area.start.y, base_opts.position.z)
   mower.finish_position = vector.new(base_opts.mowing_area.finish.x, base_opts.mowing_area.finish.y, base_opts.position.z)
   mower.refuel_side = base_opts.refuel_side
   mower.turn_direction = base_opts.dodge_direction and base_opts.dodge_direction or Mower.turn_direction.LEFT
   mower.obstacle_max_size = base_opts.obstacle_max_size and base_opts.obstacle_max_size or 12
   mower.obstacle_height_threshold = base_opts.obstacle_height_threshold and base_opts.obstacle_height_threshold or 2
+  mower.mowables = base_opts.mowables
   mower.logger.info(string.format([[
 Configured parameters:
 
@@ -519,7 +530,7 @@ Configured parameters:
     Dodge direction: %s
     Max Obstacle Size: %d
     Obstacle height threshold: %d
-  ]], mower.current_position:tostring(), Mower.direction.pretty(mower.current_direction),
+  ]], mower.base_position:tostring(), Mower.direction.pretty(mower.base_direction),
       Mower.refuel_side.pretty(mower.refuel_side), Mower.turn_direction.pretty(mower.turn_direction),
       mower.obstacle_max_size, mower.obstacle_height_threshold))
 
@@ -527,6 +538,8 @@ Configured parameters:
   mower.obstacle_moves = 0
   mower.obstacle_turned = false
   mower.next_turn = Mower.turn_direction.RIGHT
+  mower.current_position = vector.new(base_opts.position.x, base_opts.position.y, base_opts.position.z)
+  mower.current_direction = base_opts.direction
 
   mower.fsm = mower:create_sm()
   -- This isn't called by state machine init for some reason

@@ -21,7 +21,19 @@ local opts = {
   },
   direction = lawnmower.direction.EAST,
   refuel_side = lawnmower.refuel_side.RIGHT,
-  obstacle_height_threshold = 2
+  obstacle_height_threshold = 2,
+  mowables = {
+    "botania:flower",
+    "botania:double_flower",
+    "minecraft:grass",
+    "minecraft:tallgrass",
+    "minecraft:yellow_flower",
+    "minecraft:red_flower",
+    "minecraft:double_plant",
+    "minecraft:leaves",
+    "minecraft:leaves2",
+    "minecraft:web",
+  }
 }
 
 local mower = lawnmower.create(opts, logger)
