@@ -1,6 +1,10 @@
 local Mower = {}
 Mower.__index = Mower
 
+local function vector_equals(a, b)
+  return a.x == b.x and a.y == b.y and a.z == b.z
+end
+
 -------------
 -- "Enums" --
 -------------
@@ -50,39 +54,39 @@ Mower.direction = {
   SOUTH = vector.new(0, -1, 0),
   WEST = vector.new(-1, 0, 0),
   pretty = function(direction)
-    if direction == Mower.direction.NORTH then
+    if vector_equals(direction, Mower.direction.NORTH) then
       return 'NORTH'
-    elseif direction == Mower.direction.EAST then
+    elseif vector_equals(direction, Mower.direction.EAST) then
       return 'EAST'
-    elseif direction == Mower.direction.SOUTH then
+    elseif vector_equals(direction, Mower.direction.SOUTH) then
       return 'SOUTH'
-    elseif direction == Mower.direction.WEST then
+    elseif vector_equals(direction, Mower.direction.WEST) then
       return 'WEST'
     else
       return 'INVALID'
     end
   end,
   turn_right = function(direction)
-    if direction == Mower.direction.NORTH then
+    if vector_equals(direction, Mower.direction.NORTH) then
       return Mower.direction.EAST
-    elseif direction == Mower.direction.EAST then
+    elseif vector_equals(direction, Mower.direction.EAST) then
       return Mower.direction.SOUTH
-    elseif direction == Mower.direction.SOUTH then
+    elseif vector_equals(direction, Mower.direction.SOUTH) then
       return Mower.direction.WEST
-    elseif direction == Mower.direction.WEST then
+    elseif vector_equals(direction, Mower.direction.WEST) then
       return Mower.direction.NORTH
     else
       return nil
     end
   end,
   turn_left = function(direction)
-    if direction == Mower.direction.NORTH then
+    if vector_equals(direction, Mower.direction.NORTH) then
       return Mower.direction.WEST
-    elseif direction == Mower.direction.EAST then
+    elseif vector_equals(direction, Mower.direction.EAST) then
       return Mower.direction.NORTH
-    elseif direction == Mower.direction.SOUTH then
+    elseif vector_equals(direction, Mower.direction.SOUTH) then
       return Mower.direction.EAST
-    elseif direction == Mower.direction.WEST then
+    elseif vector_equals(direction, Mower.direction.WEST) then
       return Mower.direction.SOUTH
     else
       return nil
@@ -93,6 +97,7 @@ Mower.direction = {
 -------------
 -- Helpers --
 -------------
+
 
 -- These are simple wrappers around the turtle API that also handle dead reckoning
 function Mower:turn_right()
@@ -185,11 +190,11 @@ function Mower:move_down()
 end
 
 function Mower:at_position(targetPosition)
-    return self.current_position == targetPosition
+    return vector_equals(self.current_position, targetPosition)
 end
 
 function Mower:face_direction(targetDirection)
-    while self.current_direction ~= targetDirection do
+    while not vector_equals(self.current_direction, targetDirection) do
         self:turn_right()
     end
 end
@@ -272,13 +277,13 @@ end
 
 function Mower:is_done_mowing()
     -- Check if the mower has reached or passed the finish position
-    if self.direction == Mower.direction.NORTH then
+    if vector_equals(self.direction, Mower.direction.NORTH) then
         return self.current_position.y >= self.finish_position.y
-    elseif self.direction == Mower.direction.SOUTH then
+    elseif vector_equals(self.direction, Mower.direction.SOUTH) then
         return self.current_position.y <= self.finish_position.y
-    elseif self.direction == Mower.direction.EAST then
+    elseif vector_equals(self.direction, Mower.direction.EAST) then
         return self.current_position.x >= self.finish_position.x
-    elseif self.direction == Mower.direction.WEST then
+    elseif vector_equals(self.direction, Mower.direction.WEST) then
         return self.current_position.x <= self.finish_position.x
     end
 end
