@@ -45,9 +45,9 @@ Mower.refuel_side = {
 }
 
 Mower.direction = {
-  NORTH = vector.new(0, 1, 0),
+  NORTH = vector.new(0, -1, 0),
   EAST = vector.new(1, 0, 0),
-  SOUTH = vector.new(0, -1, 0),
+  SOUTH = vector.new(0, 1, 0),
   WEST = vector.new(-1, 0, 0),
   pretty = function(direction)
     if direction == Mower.direction.NORTH then
