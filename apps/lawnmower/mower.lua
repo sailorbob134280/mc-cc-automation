@@ -504,6 +504,8 @@ function Mower.create(base_opts, logger)
   mower.logger.debug('Setting configuration parameters')
   mower.current_position = vector.new(base_opts.position.x, base_opts.position.y, base_opts.position.z)
   mower.current_direction = base_opts.direction
+  mower.start_position = vector.new(base_opts.mowing_area.start.x, base_opts.mowing_area.start.y, base_opts.position.z)
+  mower.finish_position = vector.new(base_opts.mowing_area.finish.x, base_opts.mowing_area.finish.y, base_opts.position.z)
   mower.refuel_side = base_opts.refuel_side
   mower.turn_direction = base_opts.dodge_direction and base_opts.dodge_direction or Mower.turn_direction.LEFT
   mower.obstacle_max_size = base_opts.obstacle_max_size and base_opts.obstacle_max_size or 12
@@ -517,7 +519,7 @@ Configured parameters:
     Dodge direction: %s
     Max Obstacle Size: %d
     Obstacle height threshold: %d
-  ]], mower.current_position:toString(), Mower.direction.pretty(mower.current_direction),
+  ]], mower.current_position:tostring(), Mower.direction.pretty(mower.current_direction),
       Mower.refuel_side.pretty(mower.refuel_side), Mower.turn_direction.pretty(mower.turn_direction),
       mower.obstacle_max_size, mower.obstacle_height_threshold))
 
