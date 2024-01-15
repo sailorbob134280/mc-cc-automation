@@ -1,6 +1,7 @@
 -- Adjust package.path to include libraries
 package.path = package.path .. ";./lib/?.lua"
 package.path = package.path .. ";../lib/?.lua"
+package.path = package.path .. ";../../lib/?.lua"
 
 local logger = require('logger')
 logger.setLevel(logger.levels.TRACE)
