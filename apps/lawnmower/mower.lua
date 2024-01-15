@@ -315,12 +315,12 @@ function Mower:mow()
     return true
   end
 
-  if ~turtle.detectDown() then
+  if not turtle.detectDown() then
     self.logger.debug('We\'re flying, Jack! Trying to land')
     self:move_down()
   end
 
-  if !self:move_forward() then
+  if not self:move_forward() then
   else
     self.logger.debug('Unable to move forward, trying to climb')
     if self:move_up() then
@@ -390,7 +390,7 @@ function Mower:turnaround()
 
   turn()
 
-  if !self:move_forward() then
+  if not self:move_forward() then
     self.logger.error('Unable to move forward during turnaround')
     self.fsm:error()
     return true
