@@ -5,11 +5,11 @@ package.path = package.path .. ";../../lib/?.lua"
 package.path = package.path .. ";./?.lua"
 
 local logger = require('logger')
-logger.setLevel(logger.levels.TRACE)
+logger.setLevel(logger.levels.DEBUG)
 logger.banner('Lawnmower')
 logger.info('Initializing the lawnmower application...')
 
-local lawnmower = require('apps.lawnmower.mower')
+local lawnmower = require('mower')
 
 -- Configure constants
 -- TODO: Move these to a config file
