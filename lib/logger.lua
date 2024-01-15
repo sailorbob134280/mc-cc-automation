@@ -49,15 +49,14 @@ end
 -- Function to set the log level
 function Logger.setLevel(level)
     Logger.currentLevel = level
+    Logger.info('Log level: ' .. Logger.prettyLevel(Logger.currentLevel))
 end
 
 -- Print a fancy banner
 function Logger.banner(message)
-print('\n')
 print(Logger.colors.GREEN .. '-----------------------------------------' .. Logger.colors.RESET)
 print(Logger.colors.GREEN .. message .. Logger.colors.RESET)
 print(Logger.colors.GREEN .. '-----------------------------------------' .. Logger.colors.RESET)
-print('\n')
 end
 
 -- Log functions for each level
