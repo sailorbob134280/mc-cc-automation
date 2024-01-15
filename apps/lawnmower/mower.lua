@@ -202,7 +202,8 @@ function Mower:calculate_direction_to(target_position)
         return Mower.direction.EAST
     elseif self.current_position.x > target_position.x then
         return Mower.direction.WEST
-    elseif self.current_position.y < target_position.y then
+    -- Yes, this is wrong. Yes, minecraft is also wrong. Yes, it infuriates me too.
+    elseif self.current_position.y > target_position.y then
         return Mower.direction.NORTH
     else
         return Mower.direction.SOUTH
