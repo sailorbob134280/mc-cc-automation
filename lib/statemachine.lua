@@ -6,7 +6,7 @@ local ASYNC = "async"
 
 local function call_handler(handler, params)
   if handler then
-    return handler(unpack(params))
+    return handler(table.unpack(params))
   end
 end
 
@@ -34,7 +34,7 @@ local function create_transition(name)
       if leaveReturn ~= ASYNC then
         transition(self, ...)
       end
-      
+
       return true
     elseif self.asyncState == name .. "WaitingOnLeave" then
       self.current = to
@@ -46,7 +46,7 @@ local function create_transition(name)
       if enterReturn ~= ASYNC then
         transition(self, ...)
       end
-      
+
       return true
     elseif self.asyncState == name .. "WaitingOnEnter" then
       call_handler(self["onafter" .. name] or self["on" .. name], params)
@@ -96,7 +96,7 @@ function machine.create(options)
     fsm.events[name] = fsm.events[name] or { map = {} }
     add_to_map(fsm.events[name].map, event)
   end
-  
+
   for name, callback in pairs(options.callbacks or {}) do
     fsm[name] = callback
   end

@@ -5,14 +5,23 @@ package.path = package.path .. ";../lib/?.lua"
 local machine = require('statemachine')
 
 local fsm = machine.create({
-  initial = 'hungry',
+  initial = 'green',
   events = {
-    { name = 'eat',  from = 'hungry',                                to = 'satisfied' },
-    { name = 'eat',  from = 'satisfied',                             to = 'full'      },
-    { name = 'eat',  from = 'full',                                  to = 'sick'      },
-    { name = 'rest', from = {'hungry', 'satisfied', 'full', 'sick'}, to = 'hungry'    },
-}})
+    { name = 'warn',  from = 'green',  to = 'yellow' },
+    { name = 'panic', from = 'yellow', to = 'red'    },
+    { name = 'calm',  from = 'red',    to = 'yellow' },
+    { name = 'clear', from = 'yellow', to = 'green'  }
+  },
+  callbacks = {
+    onpanic =  function(self, event, from, to, msg) print('panic! ' .. msg)    end,
+    onclear =  function(self, event, from, to, msg) print('thanks to ' .. msg) end,
+    ongreen =  function(self, event, from, to)      print('green light')       end,
+    onyellow = function(self, event, from, to)      print('yellow light')      end,
+    onred =    function(self, event, from, to)      print('red light')         end,
+  }
+})
 
-print(fsm.current) -- hungry
-fsm:eat()
-print(fsm.current) -- hungry
+fsm:warn()
+fsm:panic('killer bees')
+fsm:calm()
+fsm:clear('sedatives in the honey pots')
