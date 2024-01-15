@@ -288,6 +288,19 @@ function Mower:is_done_mowing()
     end
 end
 
+function Mower:is_row_complete()
+    -- Check if the mower has reached or passed the finish position
+    if vector_eq(self.direction, Mower.direction.NORTH) then
+        return self.current_position.y <= math.min(self.start_position.y, self.finish_position.y)
+    elseif vector_eq(self.direction, Mower.direction.SOUTH) then
+        return self.current_position.y >= math.min(self.start_position.y, self.finish_position.y)
+    elseif vector_eq(self.direction, Mower.direction.EAST) then
+        return self.current_position.x >= math.min(self.start_position.x, self.finish_position.x)
+    elseif vector_eq(self.direction, Mower.direction.WEST) then
+        return self.current_position.x <= math.min(self.start_position.x, self.finish_position.x)
+    end
+end
+
 -------------------
 -- State Actions --
 -------------------
@@ -301,7 +314,7 @@ function Mower:start()
 
   if self:at_position(self.start_position) then
     self:face_direction(self.base_direction)
-    self.fs:at_start()
+    self.fsm:at_start()
     return true
   end
 
@@ -348,6 +361,11 @@ function Mower:mow()
       self.logger.debug('Block in front of us is mowable, trying to mow')
       turtle.dig()
     end
+  end
+
+  if self:is_row_complete() then
+    self.logger.debug('Row complete, turning around')
+    self.fsm:row_complete()
   end
 
   return true
