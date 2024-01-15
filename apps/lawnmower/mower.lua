@@ -269,6 +269,20 @@ function Mower:checkObstaclePostMove()
     end
     return true
 end
+
+function Mower:is_done_mowing()
+    -- Check if the mower has reached or passed the finish position
+    if self.direction == Mower.direction.NORTH then
+        return self.current_position.y >= self.finish_position.y
+    elseif self.direction == Mower.direction.SOUTH then
+        return self.current_position.y <= self.finish_position.y
+    elseif self.direction == Mower.direction.EAST then
+        return self.current_position.x >= self.finish_position.x
+    elseif self.direction == Mower.direction.WEST then
+        return self.current_position.x <= self.finish_position.x
+    end
+end
+
 -------------------
 -- State Actions --
 -------------------
@@ -304,7 +318,6 @@ function Mower:mow()
   if ~turtle.detectDown() then
     self.logger.debug('We\'re flying, Jack! Trying to land')
     self:move_down()
-    return true
   end
 
   if !self:move_forward() then
@@ -314,6 +327,11 @@ function Mower:mow()
       self.logger.debug('Unable to move up, obstacle detected')
       self.fsm:obstacle()
     end
+  end
+
+  if self:is_done_mowing() then
+    self.logger.debug('Mowing complete, returning to base')
+    self.fsm:mowing_complete()
   end
 
   return true
