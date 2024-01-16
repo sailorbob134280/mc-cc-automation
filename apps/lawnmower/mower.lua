@@ -264,22 +264,6 @@ end
 function Mower:mow()
   self.logger.trace('Mowing action')
 
-  if self:is_done_mowing() then
-    self.logger.debug('Mowing complete, returning to base')
-    self.fsm:mowing_complete()
-  end
-
-  if self:is_row_complete() then
-    self.logger.debug('Row complete, turning around')
-    self.fsm:row_complete()
-  end
-
-  if self.current_position.z > self.base_position.z + self.obstacle_height_threshold then
-    self.logger.debug('Obstacle thresholed exceeded, trying to dodge')
-    self.fsm:obstacle()
-    return true
-  end
-
   if not self:move_forward() then
     self.logger.debug('Unable to move forward, is it mowable?')
     local success, data = turtle.inspect()
@@ -295,6 +279,16 @@ function Mower:mow()
       self.fsm:obstacle()
       return true
     end
+  end
+
+  if self:is_done_mowing() then
+    self.logger.debug('Mowing complete, returning to base')
+    self.fsm:mowing_complete()
+  end
+
+  if self:is_row_complete() then
+    self.logger.debug('Row complete, turning around')
+    self.fsm:row_complete()
   end
 
   if not turtle.detectDown() then
@@ -350,13 +344,6 @@ function Mower:turnaround()
   end
 
   turn()
-
-  -- One more to keep it from tripping row complete logic
-  if not self:move_forward() then
-    self.logger.error('Unable to move forward during turnaround')
-    self.fsm:error()
-    return true
-  end
 
   self.fsm:turned_around()
   return true
