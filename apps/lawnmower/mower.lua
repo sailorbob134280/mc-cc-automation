@@ -282,9 +282,9 @@ function Mower:is_done_mowing()
     elseif vector_eq(self.base_direction, Mower.direction.SOUTH) then
         return self.current_position.x <= self.finish_position.x
     elseif vector_eq(self.base_direction, Mower.direction.EAST) then
-        return self.current_position.y <= self.finish_position.y
-    elseif vector_eq(self.base_direction, Mower.direction.WEST) then
         return self.current_position.y >= self.finish_position.y
+    elseif vector_eq(self.base_direction, Mower.direction.WEST) then
+        return self.current_position.y <= self.finish_position.y
     end
 end
 
@@ -433,13 +433,20 @@ function Mower:turnaround()
 
   turn()
 
+  -- One more to keep it from tripping row complete logic
+  if not self:move_forward() then
+    self.logger.error('Unable to move forward during turnaround')
+    self.fsm:error()
+    return true
+  end
+
   return true
 end
 
 function Mower:return_to_base()
   self.logger.trace('Return action')
 
-  if self:at_position(self.start_position) then
+  if self:at_position(self.base_position) then
     self.fsm:at_base()
     return true
   end
