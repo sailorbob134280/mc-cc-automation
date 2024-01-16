@@ -293,9 +293,9 @@ function Mower:is_row_complete()
     if vector_eq(self.direction, Mower.direction.NORTH) then
         return self.current_position.y <= math.min(self.start_position.y, self.finish_position.y)
     elseif vector_eq(self.direction, Mower.direction.SOUTH) then
-        return self.current_position.y >= math.min(self.start_position.y, self.finish_position.y)
+        return self.current_position.y >= math.max(self.start_position.y, self.finish_position.y)
     elseif vector_eq(self.direction, Mower.direction.EAST) then
-        return self.current_position.x >= math.min(self.start_position.x, self.finish_position.x)
+        return self.current_position.x >= math.max(self.start_position.x, self.finish_position.x)
     elseif vector_eq(self.direction, Mower.direction.WEST) then
         return self.current_position.x <= math.min(self.start_position.x, self.finish_position.x)
     end
@@ -333,6 +333,11 @@ function Mower:mow()
     self.fsm:mowing_complete()
   end
 
+  if self:is_row_complete() then
+    self.logger.debug('Row complete, turning around')
+    self.fsm:row_complete()
+  end
+
   if self.current_position.z > self.base_position.z + self.obstacle_height_threshold then
     self.logger.debug('Obstacle thresholed exceeded, trying to dodge')
     self.fsm:obstacle()
@@ -341,7 +346,8 @@ function Mower:mow()
 
   if not turtle.detectDown() then
     self.logger.debug('We\'re flying, Jack! Trying to land')
-    self:move_down()
+    while self:move_down() do
+    end
   end
 
   if not self:move_forward() then
@@ -353,7 +359,7 @@ function Mower:mow()
       return true
     elseif not self.mowables[data.name] then
       self.logger.debug('Block in front of us is not mowable, trying to move up')
-      if self:move_up() then
+      if not self:move_up() then
         self.logger.debug('Unable to move up, obstacle detected')
         self.fsm:obstacle()
       end
@@ -361,11 +367,6 @@ function Mower:mow()
       self.logger.debug('Block in front of us is mowable, trying to mow')
       turtle.dig()
     end
-  end
-
-  if self:is_row_complete() then
-    self.logger.debug('Row complete, turning around')
-    self.fsm:row_complete()
   end
 
   return true
