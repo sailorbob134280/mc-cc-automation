@@ -211,6 +211,15 @@ function Mower:calculate_direction_to(target_position)
     end
 end
 
+function Mower:is_mowable(name)
+  for _, mowable in pairs(self.mowables) do
+    if mowable == name then
+      return true
+    end
+  end
+  return false
+end
+
 function Mower:is_done_mowing()
     -- Check if the mower has reached or passed the finish position
     if vector_eq(self.base_direction, Mower.direction.NORTH) then
@@ -271,7 +280,7 @@ function Mower:mow()
       self.logger.error('Unable to inspect block in front of us for some reason')
       self.fsm:error()
       return true
-    elseif self.mowables[data.name] then
+    elseif self:is_mowable(data.name) then
       self.logger.debug('Block in front of us is mowable, trying to mow')
       turtle.dig()
     else
@@ -353,6 +362,7 @@ function Mower:return_to_base()
   self.logger.trace('Return action')
 
   if self:at_position(self.base_position) then
+    self:face_direction(self.base_direction)
     self.fsm:at_base()
     return true
   end
