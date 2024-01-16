@@ -211,70 +211,6 @@ function Mower:calculate_direction_to(target_position)
     end
 end
 
-function Mower:handleObstacleInPath()
-    self:turn(Mower.turn_direction.opposite(self.dodge_direction))
-    if turtle.detect() then
-        self.logger.debug('Obstacle stillcurrent_direction here, continuing to dodge')
-        self:turn(self.dodge_direction)
-    else 
-        self.logger.debug('No more obstacle, trying to move around it')
-        return self:moveAroundObstacle()
-    end
-    return true
-end
-
-function Mower:moveAroundObstacle()
-    repeat
-        if not self:move_forward() then
-            self.logger.error('Unable to move forward during dodge. Too complicated for now.')
-            self.fsm:error()
-            return true
-        else
-            self.obstacle_moves = self.obstacle_moves - 1
-        end
-    until self.obstacle_moves == 0 or turtle.detect()
-    if self.obstacle_moves == 0 then
-        self.logger.debug('Obstacle cleared, returning to mowing')
-        self.fsm:obstacle_cleared()
-        return true
-    end
-    self:turn(self.dodge_direction)
-    self.obstacle_turned = false
-    return true
-end
-
-function Mower:handleLargeObstacle()
-    self.logger.warn('Obstacle too large, trying to turn around')
-    self:turn_around()
-    repeat
-        if not self:move_forward() then
-            self.logger.error('Unable to move forward during turnaround')
-            self.fsm:error()
-            return true
-        else
-            self.obstacle_moves = self.obstacle_moves - 1
-        end
-    until self.obstacle_moves == 0
-
-    self:turn(self.dodge_direction)
-    self.obstacle_turned = false
-    self.fsm:row_complete()
-    return true
-end
-
-function Mower:checkObstaclePostMove()
-    self:turn(Mower.turn_direction.opposite(self.dodge_direction))
-    if turtle.detect() then
-        self.logger.debug('Obstacle still here, continuing to dodge')
-        self:turn(self.dodge_direction)
-    else
-        self.logger.debug('No more obstacle, trying to move around it')
-        self:move_forward() -- we just checked this was safe
-        self.obstacle_turned = false
-    end
-    return true
-end
-
 function Mower:is_done_mowing()
     -- Check if the mower has reached or passed the finish position
     if vector_eq(self.base_direction, Mower.direction.NORTH) then
@@ -351,15 +287,13 @@ function Mower:mow()
       self.logger.error('Unable to inspect block in front of us for some reason')
       self.fsm:error()
       return true
-    elseif not self.mowables[data.name] then
-      self.logger.debug('Block in front of us is not mowable, trying to move up')
-      if not self:move_up() then
-        self.logger.debug('Unable to move up, obstacle detected')
-        self.fsm:obstacle()
-      end
-    else
+    elseif self.mowables[data.name] then
       self.logger.debug('Block in front of us is mowable, trying to mow')
       turtle.dig()
+    else
+      self.logger.debug('Block in front of us is not mowable, so it must be an obstacle')
+      self.fsm:obstacle()
+      return true
     end
   end
 
@@ -374,41 +308,25 @@ end
 
 function Mower:dodge()
     self.logger.trace('Dodging action')
-
-    -- Is there something in front of us?
-    if not turtle.detect() then
-        if self.obstacle_moves > 0 then
-            return self:handleObstacleInPath()
-        else
-            self.logger.debug('Obstacle cleared, returning to mowing')
-            self.fsm:obstacle_cleared()
-            return true
-        end
-    end
-
-    -- If we haven't turned yet, turn
-    if not self.obstacle_turned then
-        self.logger.debug('Turning to avoid obstacle')
-        self:turn(self.dodge_direction)
-        self.obstacle_turned = true
-        return true
-    end
-
-    -- We've already moved too far
-    if self.obstacle_moves >= self.obstacle_max_size then
-        return self:handleLargeObstacle()
-    end
-
-    -- Move forward
-    if not self:move_forward() then
-        self.logger.error('Unable to move forward during dodge. Too complicated for now.')
-        self.fsm:error()
+    if self:move_forward() then 
+        self.logger.debug('Dodged the obstacle')
+        self.fsm:obstacle_cleared()
         return true
     else
-        self.obstacle_moves = self.obstacle_moves + 1
+      self.logger.debug('Still blocked. Climbing...')
+      if not self:move_up() then
+        self.logger.debug('Under an overhang! Trying to turn around...')
+        self:turn_around()
+        if not self:move_forward() then
+            self.logger.error('Someone is fucking with me. I\'m going to safe mode >:(')
+            self.fsm:error()
+            return true
+        end
+        self:turn_around()
+        return true
+      end
+      return true
     end
-
-    return self:checkObstaclePostMove()
 end
 
 function Mower:turnaround()
@@ -552,7 +470,6 @@ function Mower.create(base_opts, logger)
   mower.refuel_side = base_opts.refuel_side
   mower.turn_direction = base_opts.dodge_direction and base_opts.dodge_direction or Mower.turn_direction.LEFT
   mower.obstacle_max_size = base_opts.obstacle_max_size and base_opts.obstacle_max_size or 12
-  mower.obstacle_height_threshold = base_opts.obstacle_height_threshold and base_opts.obstacle_height_threshold or 2
   mower.mowables = base_opts.mowables
   mower.logger.info(string.format([[
 Configured parameters:
@@ -568,8 +485,6 @@ Configured parameters:
       mower.obstacle_max_size, mower.obstacle_height_threshold))
 
   -- Starting state
-  mower.obstacle_moves = 0
-  mower.obstacle_turned = false
   mower.next_turn = Mower.turn_direction.RIGHT
   mower.current_position = vector.new(base_opts.position.x, base_opts.position.y, base_opts.position.z)
   mower.current_direction = base_opts.direction
