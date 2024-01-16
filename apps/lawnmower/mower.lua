@@ -216,7 +216,7 @@ function Mower:handleObstacleInPath()
     if turtle.detect() then
         self.logger.debug('Obstacle stillcurrent_direction here, continuing to dodge')
         self:turn(self.dodge_direction)
-    else
+    else 
         self.logger.debug('No more obstacle, trying to move around it')
         return self:moveAroundObstacle()
     end
@@ -277,26 +277,26 @@ end
 
 function Mower:is_done_mowing()
     -- Check if the mower has reached or passed the finish position
-    if vector_eq(self.direction, Mower.direction.NORTH) then
+    if vector_eq(self.current_direction, Mower.direction.NORTH) then
         return self.current_position.y >= self.finish_position.y
-    elseif vector_eq(self.direction, Mower.direction.SOUTH) then
+    elseif vector_eq(self.current_direction, Mower.direction.SOUTH) then
         return self.current_position.y <= self.finish_position.y
-    elseif vector_eq(self.direction, Mower.direction.EAST) then
+    elseif vector_eq(self.current_direction, Mower.direction.EAST) then
         return self.current_position.x >= self.finish_position.x
-    elseif vector_eq(self.direction, Mower.direction.WEST) then
+    elseif vector_eq(self.current_direction, Mower.direction.WEST) then
         return self.current_position.x <= self.finish_position.x
     end
 end
 
 function Mower:is_row_complete()
     -- Check if the mower has reached or passed the finish position
-    if vector_eq(self.direction, Mower.direction.NORTH) then
+    if vector_eq(self.current_direction, Mower.direction.NORTH) then
         return self.current_position.y <= math.min(self.start_position.y, self.finish_position.y)
-    elseif vector_eq(self.direction, Mower.direction.SOUTH) then
+    elseif vector_eq(self.current_direction, Mower.direction.SOUTH) then
         return self.current_position.y >= math.max(self.start_position.y, self.finish_position.y)
-    elseif vector_eq(self.direction, Mower.direction.EAST) then
+    elseif vector_eq(self.current_direction, Mower.direction.EAST) then
         return self.current_position.x >= math.max(self.start_position.x, self.finish_position.x)
-    elseif vector_eq(self.direction, Mower.direction.WEST) then
+    elseif vector_eq(self.current_direction, Mower.direction.WEST) then
         return self.current_position.x <= math.min(self.start_position.x, self.finish_position.x)
     end
 end
@@ -414,7 +414,7 @@ end
 function Mower:turnaround()
   self.logger.trace('Turnaround action')
 
-  local turn 
+  local turn
   if self.next_turn == Mower.turn_direction.LEFT then
     turn = function() self:turn_left() end
     self.next_turn = Mower.turn_direction.RIGHT
