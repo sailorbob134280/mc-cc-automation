@@ -14,13 +14,13 @@ local lawnmower = require('mower')
 -- Configure constants
 -- TODO: Move these to a config file
 local opts = {
-  position = {x = 430, y = 58, z = 68},
+  position = {x = 430, y = 57, z = 68},
   mowing_area = {
-    start = {x = 438, y = 47},
-    finish = {x = 448, y = 64}
+    start = {x = 433, y = 34},
+    finish = {x = 489, y = 83}
   },
   direction = lawnmower.direction.EAST,
-  refuel_side = lawnmower.refuel_side.RIGHT,
+  refuel_side = lawnmower.refuel_side.BACK,
   mowables = {
     "botania:flower",
     "botania:double_flower",
@@ -39,4 +39,9 @@ local mower = lawnmower.create(opts, logger)
 
 -- Start the lawnmower
 mower:begin()
-mower:run()
+
+while true do
+  mower:run()
+  os.setAlarm(24)
+  os.pullEvent("alarm")
+end

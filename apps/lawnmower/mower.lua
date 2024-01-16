@@ -199,15 +199,15 @@ function Mower:face_direction(targetDirection)
 end
 
 function Mower:calculate_direction_to(target_position)
-    if self.current_position.x < target_position.x then
-        return Mower.direction.EAST
-    elseif self.current_position.x > target_position.x then
-        return Mower.direction.WEST
     -- Yes, this is wrong. Yes, minecraft is also wrong. Yes, it infuriates me too.
-    elseif self.current_position.y > target_position.y then
+    if self.current_position.y > target_position.y then
         return Mower.direction.NORTH
-    else
+    elseif self.current_position.y < target_position.y then
         return Mower.direction.SOUTH
+    elseif self.current_position.x < target_position.x then
+        return Mower.direction.EAST
+    else 
+        return Mower.direction.WEST
     end
 end
 
@@ -363,6 +363,9 @@ function Mower:return_to_base()
 
   if self:at_position(self.base_position) then
     self:face_direction(self.base_direction)
+    while self.current_position.z > self.base_position.z do
+      self:move_down()
+    end
     self.fsm:at_base()
     return true
   end
@@ -372,6 +375,34 @@ function Mower:return_to_base()
   self:move_forward()
 
   return true
+end
+
+function Mower:refuel()
+  self.logger.trace('Refuel action')
+  local turn_back
+  if self.refuel_side == Mower.refuel_side.LEFT then
+    self:turn_left()
+    turn_back = function() self:turn_right() end
+  elseif self.refuel_side == Mower.refuel_side.RIGHT then
+    self:turn_right()
+    turn_back = function() self:turn_left() end
+  else
+    self:turn_around()
+    turn_back = function() self:turn_around() end
+  end
+
+  turtle.suck()
+  turtle.refuel()
+  turtle.drop()
+
+  turn_back()
+  self.fsm:refuel_complete()
+end
+
+function Mower:empty_bag()
+  self.logger.trace('Empty bag action')
+  turtle.dropDown()
+  self.fsm:bag_empty()
 end
 
 function Mower:safe_mode()
@@ -400,7 +431,9 @@ function Mower:create_sm()
       {name = 'row_complete', from = 'mowing', to = 'turnaround'},
       {name = 'turned_around', from = 'turnaround', to = 'mowing'},
       {name = 'mowing_complete', from = 'mowing', to = 'returning'},
-      {name = 'at_base', from = 'returning', to = 'idle'},
+      {name = 'at_base', from = 'returning', to = 'empty_bag'},
+      {name = 'bag_empty', from = 'empty_bag', to = 'refuel'},
+      {name = 'refuel_complete', from = 'refuel', to = 'idle'},
       {name = 'error', from = '*', to = 'safe_mode'},
     },
     callbacks = {
