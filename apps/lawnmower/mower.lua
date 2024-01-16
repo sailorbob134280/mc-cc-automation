@@ -344,12 +344,6 @@ function Mower:mow()
     return true
   end
 
-  if not turtle.detectDown() then
-    self.logger.debug('We\'re flying, Jack! Trying to land')
-    while self:move_down() do
-    end
-  end
-
   if not self:move_forward() then
     self.logger.debug('Unable to move forward, is it mowable?')
     local success, data = turtle.inspect()
@@ -366,6 +360,12 @@ function Mower:mow()
     else
       self.logger.debug('Block in front of us is mowable, trying to mow')
       turtle.dig()
+    end
+  end
+
+  if not turtle.detectDown() then
+    self.logger.debug('We\'re flying, Jack! Trying to land')
+    while self:move_down() do
     end
   end
 
