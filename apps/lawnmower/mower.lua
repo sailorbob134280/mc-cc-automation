@@ -277,14 +277,14 @@ end
 
 function Mower:is_done_mowing()
     -- Check if the mower has reached or passed the finish position
-    if vector_eq(self.current_direction, Mower.direction.NORTH) then
-        return self.current_position.y >= self.finish_position.y
-    elseif vector_eq(self.current_direction, Mower.direction.SOUTH) then
-        return self.current_position.y <= self.finish_position.y
-    elseif vector_eq(self.current_direction, Mower.direction.EAST) then
+    if vector_eq(self.base_direction, Mower.direction.NORTH) then
         return self.current_position.x >= self.finish_position.x
-    elseif vector_eq(self.current_direction, Mower.direction.WEST) then
+    elseif vector_eq(self.base_direction, Mower.direction.SOUTH) then
         return self.current_position.x <= self.finish_position.x
+    elseif vector_eq(self.base_direction, Mower.direction.EAST) then
+        return self.current_position.y <= self.finish_position.y
+    elseif vector_eq(self.base_direction, Mower.direction.WEST) then
+        return self.current_position.y >= self.finish_position.y
     end
 end
 
@@ -440,7 +440,7 @@ function Mower:return_to_base()
   self.logger.trace('Return action')
 
   if self:at_position(self.start_position) then
-    self.fs:at_base()
+    self.fsm:at_base()
     return true
   end
 

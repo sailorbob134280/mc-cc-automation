@@ -17,11 +17,16 @@ Logger.levels = {
 
 -- Log colors
 Logger.colors = {
-    RED = "\27[31m",
-    YELLOW = "\27[33m",
-    GREEN = "\27[32m",
-    BLUE = "\27[34m",
-    RESET = "\27[0m"
+--     RED = "\27[31m",
+--     YELLOW = "\27[33m",
+--     GREEN = "\27[32m",
+--     BLUE = "\27[34m",
+--     RESET = "\27[0m"
+    RED = "",
+    YELLOW = "",
+    GREEN = "",
+    BLUE = "",
+    RESET = ""
 }
 
 -- Default log level
