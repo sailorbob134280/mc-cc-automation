@@ -440,6 +440,7 @@ function Mower:turnaround()
     return true
   end
 
+  self.fsm:turned_around()
   return true
 end
 
