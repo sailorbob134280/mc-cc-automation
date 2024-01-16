@@ -24,7 +24,6 @@ local opts = {
   mowables = {
     "botania:flower",
     "botania:double_flower",
-    "minecraft:grass",
     "minecraft:tallgrass",
     "minecraft:yellow_flower",
     "minecraft:red_flower",

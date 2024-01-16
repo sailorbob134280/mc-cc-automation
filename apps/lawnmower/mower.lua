@@ -212,6 +212,9 @@ function Mower:calculate_direction_to(target_position)
 end
 
 function Mower:is_mowable(name)
+  if string.find(name, 'flower') then
+    return true
+  end
   for _, mowable in pairs(self.mowables) do
     if mowable == name then
       return true
